@@ -1,0 +1,28 @@
+version: 0.2
+phases:
+    pre_build:
+        commands:
+            - apt-get update -y && 
+            - aws --version
+            - IMAGE_TAG=$(date '+%Y%m%d%H%M%S')
+            - REPOSITORY_URI=803314449489.dkr.ecr.us-east-1.amazonaws.com
+            - REPOSITORY_NAME=proxy
+            - IMAGE_URI="${REPOSITORY_URI}/${REPOSITORY_NAME}:${IMAGE_TAG}"
+    build:
+        commands:
+            - echo Build started on `date`
+            - echo Building the Docker image
+            - docker build -t ${REPOSITORY_URI}/${REPOSITORY_NAME}:latest .
+            - docker tag ${REPOSITORY_URI}/${REPOSITORY_NAME}:latest $IMAGE_URI
+    post_build:
+        commands:
+            - echo Build completed on `date`
+            - echo Pushing the Docker image to N. Virginia...
+            - $(aws ecr get-login --region us-east-1 --no-include-email)
+            - docker push $IMAGE_URI
+            - sed -i "s/IMAGE_PLACEHOLDER/$REPOSITORY_URI\/$REPOSITORY_NAME:$IMAGE_TAG/g" image.json
+            - cat image.json
+artifacts: 
+    files:
+        - image.json
+    discard-paths: yes
