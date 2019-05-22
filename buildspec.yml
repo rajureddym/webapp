@@ -1,7 +1,8 @@
 version: 0.2
 phases:
-    runtime-versions:
-        docker: 18
+    install:
+        runtime-versions:
+            docker: 18
     pre_build:
         commands:
             - apt-get update -y && 
